@@ -266,7 +266,7 @@ public class LaunchConfigurationWrapper {
     private List<String> getTargetClasses() throws CoreException {
         ImmutableList.Builder<String> results = ImmutableList.builder();
         final String targetClasses = launchConfig.getAttribute(ATTR_TARGET_CLASSES, "");
-        return targetClasses.isBlank() ? null
+        return targetClasses.equals("") ? null
                 : results.addAll(Splitter.on(',').trimResults().omitEmptyStrings().split(targetClasses)).build();
     }
 
