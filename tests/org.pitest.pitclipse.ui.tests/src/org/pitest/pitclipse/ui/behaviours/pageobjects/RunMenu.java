@@ -101,6 +101,14 @@ public class RunMenu {
         runConfigurationSelector.setTestClassForConfiguration(configurationName, testClass);
     }
 
+    public void setTestDirForConfiguration(String configurationName, String testDir) {
+        runConfigurationSelector.setTestDirForConfiguration(configurationName, testDir);
+    }
+
+    public void setTargetClassForConfiguration(String configurationName, String targetClass) {
+        runConfigurationSelector.setTargetClassForConfiguration(configurationName, targetClass);
+    }
+
     public PitOptions getLastUsedPitOptions() {
         return PitOptionsNotifier.INSTANCE.getLastUsedOptions();
     }
