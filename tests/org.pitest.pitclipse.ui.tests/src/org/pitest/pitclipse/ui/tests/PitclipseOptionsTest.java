@@ -38,6 +38,7 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
     private static final String FOO_TEST_CLASS = "FooTest";
     private static final String BAR_CLASS = "Bar";
     private static final String BAR_TEST_CLASS = "BarTest";
+    private static final String TEST_CONFIG_NAME = "Test Config PitclipseOptionsTest";
     private static long timeoutBeforeClass;
 
     @BeforeClass
@@ -52,9 +53,11 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
     }
 
     @AfterClass
-    public static void resetTimeout() {
+    public static void resetTimeout() throws CoreException {
         SWTBotPreferences.TIMEOUT = timeoutBeforeClass;
+        removePitLaunchConfigurations();
     }
+
 
     @Before
     public void removeLaunchConfigurations() throws CoreException {
@@ -189,4 +192,32 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
         }
     }
 
+    /**
+     * FIXME: The test dir configuration does not work, if started from test class
+     */
+    public void launchConfigWithTestDir() { // NOSONAR
+        createTestConfig();
+        PAGES.getRunMenu().setTestDirForConfiguration(TEST_CONFIG_NAME, FOO_BAR_PACKAGE);
+        // run test and confirm result is as expected
+        PAGES.getRunMenu().runPitWithConfiguration(TEST_CONFIG_NAME);
+        coverageReportGenerated(2, 80, 0, 6, 0);
+    }
+
+    @Test
+    public void launchConfigWithTargetClass() { // NOSONAR
+        createTestConfig();
+        PAGES.getRunMenu().setTargetClassForConfiguration(TEST_CONFIG_NAME, FOO_BAR_PACKAGE + '.' + FOO_CLASS);
+        // run test and confirm result is as expected
+        PAGES.getRunMenu().runPitWithConfiguration(TEST_CONFIG_NAME);
+        coverageReportGenerated(1, 80, 0, 3, 0);
+        mutationsAre(   "SURVIVED    | " + TEST_PROJECT + " | foo.bar | foo.bar.Foo |    7 | negated conditional\n" +
+                        "NO_COVERAGE | " + TEST_PROJECT + " | foo.bar | foo.bar.Foo |    8 | Replaced integer addition with subtraction\n" +
+                        "NO_COVERAGE | " + TEST_PROJECT + " | foo.bar | foo.bar.Foo |    8 | replaced int return with 0 for foo/bar/Foo::f");
+    }
+
+    private void createTestConfig() {
+        PAGES.getRunMenu().createRunConfiguration(TEST_CONFIG_NAME,
+                TEST_PROJECT,
+                FOO_BAR_PACKAGE + '.' + FOO_TEST_CLASS);
+    }
 }
