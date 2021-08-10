@@ -22,6 +22,7 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.pitest.pitclipse.core.Mutators;
 import org.pitest.pitclipse.runner.PitOptions;
 import org.pitest.pitclipse.ui.swtbot.PitOptionsNotifier;
 import org.pitest.pitclipse.ui.swtbot.SWTBotMenuHelper;
@@ -30,9 +31,9 @@ public class RunMenu {
 
     private static final String RUN = "Run";
     private static final String RUN_AS = "Run As";
+    private static final String RUN_CONFIGURATIONS = "Run Configurations";
     private static final String PIT_MUTATION_TEST = "PIT Mutation Test";
     private static final String JUNIT_TEST = "JUnit Test";
-    private static final String RUN_CONFIGURATIONS = "Run Configurations";
     private final SWTWorkbenchBot bot;
     private final RunConfigurationSelector runConfigurationSelector;
 
@@ -55,6 +56,10 @@ public class RunMenu {
                   .click();
         
         ensureSelectTestConfigurationDialogIsClosed();
+    }
+
+    public void runPitWithConfiguration(String configurationName) {
+        runConfigurationSelector.runWithConfigurationAndWaitForIt(configurationName);
     }
 
     /**
@@ -84,8 +89,64 @@ public class RunMenu {
         return runConfigurationSelector.getConfigurations();
     }
 
+    public void createRunConfiguration(String configurationName, String projectName, String className) {
+        runConfigurationSelector.createRunConfiguration(configurationName, projectName, className);
+    }
+
+    public void setProjectForConfiguration(String configurationName, String project) {
+        runConfigurationSelector.setProjectForConfiguration(configurationName, project);
+    }
+
+    public void setTestClassForConfiguration(String configurationName, String testClass) {
+        runConfigurationSelector.setTestClassForConfiguration(configurationName, testClass);
+    }
+
     public PitOptions getLastUsedPitOptions() {
         return PitOptionsNotifier.INSTANCE.getLastUsedOptions();
+    }
+
+    /**
+     * Selects the given group in the mutator launch configuration tab.
+     * @param configurationName where to select the group
+     * @param mutatorGroup      which group to select
+     */
+    public void setMutatorGroup(String configurationName, Mutators mutatorGroup) {
+        runConfigurationSelector.setMutatorGroup(configurationName, mutatorGroup);
+    }
+
+    /**
+     * Checks all custom mutators for the given configuration
+     * @param configurationName of the configuration, where to select all mutators
+     */
+    public void checkAllMutators(String configurationName) {
+        runConfigurationSelector.checkAllMutators(configurationName);
+    }
+
+    /**
+     * Toggle the given mutator in the table of mutators
+     * @param configurationName which the mutator should be toggled
+     * @param mutator           which should be toggled
+     */
+    public void toggleCustomMutator(String configurationName, Mutators mutator) {
+        runConfigurationSelector.toggleCustomMutator(configurationName, mutator);
+    }
+
+    /**
+     * Unchecks all custom mutators and selects the given mutator for the
+     * configuration specified by the given name
+     * @param configurationName where to select the one mutator
+     * @param mutator           which to select in the configuration
+     */
+    public void setOneCustomMutator(String configurationName, Mutators mutator) {
+        runConfigurationSelector.setOneCustomMutator(configurationName, mutator);
+    }
+
+    /**
+     * Removes the pit run configuration, which matches the given name.
+     * @param configurationName which should be removed
+     */
+    public void removeConfig(String configurationName) {
+        runConfigurationSelector.removeConfig(configurationName);
     }
 
 }
