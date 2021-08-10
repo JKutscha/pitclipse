@@ -13,6 +13,8 @@ import static org.pitest.pitclipse.ui.behaviours.pageobjects.PageObjects.PAGES;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,6 +38,7 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
     private static final String FOO_TEST_CLASS = "FooTest";
     private static final String BAR_CLASS = "Bar";
     private static final String BAR_TEST_CLASS = "BarTest";
+    private static long timeoutBeforeClass;
 
     @BeforeClass
     public static void setupJavaProject() throws CoreException {
@@ -44,6 +47,13 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
         openEditor(FOO_TEST_CLASS, FOO_BAR_PACKAGE, TEST_PROJECT);
         openEditor(BAR_CLASS, FOO_BAR_PACKAGE, TEST_PROJECT);
         openEditor(BAR_TEST_CLASS, FOO_BAR_PACKAGE, TEST_PROJECT);
+        timeoutBeforeClass = SWTBotPreferences.TIMEOUT;
+        SWTBotPreferences.TIMEOUT = 10000;
+    }
+
+    @AfterClass
+    public static void resetTimeout() {
+        SWTBotPreferences.TIMEOUT = timeoutBeforeClass;
     }
 
     @Before

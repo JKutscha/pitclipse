@@ -16,14 +16,31 @@
 
 package org.pitest.pitclipse.ui.swtbot;
 
+import static org.junit.Assert.fail;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.WidgetResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 
 public class SWTBotMenuHelper {
+    /**
+     * Text which identifies the workspace shell, to get workspace shell reliable
+     * with the swt bot while running local tests.
+     */
+    private static final String WORKSPACE_SHELL_TEXT_LOCAL = "junit-workspace";
+    /**
+     * Text which identifies the workspace shell, to get workspace shell reliable
+     * with the swt bot while running maven.
+     */
+    private static final String WORKSPACE_SHELL_TEXT_MAVEN = "data";
 
     private static final class MenuFinder implements WidgetResult<MenuItem> {
         private final SWTBotMenu parentMenu;
@@ -63,5 +80,18 @@ public class SWTBotMenuHelper {
         } else {
             return new SWTBotMenu(menuItem);
         }
+    }
+
+    public SWTBotMenu findWorkbenchMenu(final SWTWorkbenchBot bot, final String menuString) {
+        for (SWTBotShell shell : bot.shells()) {
+            if (shell.getText().contains(WORKSPACE_SHELL_TEXT_LOCAL)
+                    || shell.getText().contains(WORKSPACE_SHELL_TEXT_MAVEN)) {
+                return shell.menu().menu(menuString);
+            }
+        }
+
+        fail("Could not find workbench shell.\n" +
+                "Shells found were: " + Stream.of(bot.shells()).map(s -> s.getText()).collect(Collectors.toList()));
+        return null; // never reached
     }
 }
