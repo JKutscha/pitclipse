@@ -16,8 +16,36 @@
 
 package org.pitest.pitclipse.launch.ui;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
+import static org.eclipse.jdt.core.IJavaElement.CLASS_FILE;
+import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
+import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
+import static org.eclipse.jdt.core.IJavaElement.METHOD;
+import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT;
+import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
+import static org.eclipse.jdt.core.IJavaElement.TYPE;
+import static org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME;
+import static org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME;
+import static org.eclipse.jdt.ui.JavaElementLabels.ALL_FULLY_QUALIFIED;
+import static org.eclipse.jdt.ui.JavaElementLabels.getTextLabel;
+import static org.eclipse.jdt.ui.JavaUI.getEditorInputTypeRoot;
+import static org.pitest.pitclipse.launch.PitLaunchArgumentsConstants.ATTR_TEST_CONTAINER;
+import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_AVOID_CALLS_TO;
+import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_EXCLUDE_CLASSES;
+import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_EXCLUDE_METHODS;
+import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_INCREMENTALLY;
+import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_IN_PARALLEL;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.asJavaElement;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.emptyLaunchConfiguration;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.emptyList;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.forEditorInputDo;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.getCorrespondingResource;
+import static org.pitest.pitclipse.launch.ui.LaunchShortcut.toArrayOfILaunchConfiguration;
+import static org.pitest.pitclipse.launch.ui.PitLaunchUiActivator.getActiveWorkbenchShell;
+import static org.pitest.pitclipse.launch.ui.PitMigrationDelegate.mapResources;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -45,38 +73,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.pitest.pitclipse.core.PitCoreActivator;
+import org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper;
 import org.pitest.pitclipse.runner.config.PitConfiguration;
+import org.pitest.pitclipse.ui.utils.PitclipseUiUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
-import static org.eclipse.jdt.core.IJavaElement.CLASS_FILE;
-import static org.eclipse.jdt.core.IJavaElement.COMPILATION_UNIT;
-import static org.eclipse.jdt.core.IJavaElement.JAVA_PROJECT;
-import static org.eclipse.jdt.core.IJavaElement.METHOD;
-import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT;
-import static org.eclipse.jdt.core.IJavaElement.PACKAGE_FRAGMENT_ROOT;
-import static org.eclipse.jdt.core.IJavaElement.TYPE;
-import static org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants.ATTR_MAIN_TYPE_NAME;
-import static org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME;
-import static org.eclipse.jdt.ui.JavaElementLabels.ALL_FULLY_QUALIFIED;
-import static org.eclipse.jdt.ui.JavaElementLabels.getTextLabel;
-import static org.eclipse.jdt.ui.JavaUI.getEditorInputTypeRoot;
-import static org.pitest.pitclipse.launch.PitLaunchArgumentsConstants.ATTR_TEST_CONTAINER;
-import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_AVOID_CALLS_TO;
-import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_EXCLUDE_CLASSES;
-import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_EXCLUDE_METHODS;
-import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_INCREMENTALLY;
-import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_IN_PARALLEL;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.asJavaElement;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.emptyLaunchConfiguration;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.emptyList;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.forEditorInputDo;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.getCorrespondingResource;
-import static org.pitest.pitclipse.launch.ui.LaunchShortcut.toArrayOfILaunchConfiguration;
-import static org.pitest.pitclipse.launch.ui.PitLaunchUiActivator.getActiveWorkbenchShell;
-import static org.pitest.pitclipse.launch.ui.PitMigrationDelegate.mapResources;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 
 /**
  * Allows to launch a PIT analyze from a contextual menu.
@@ -222,15 +224,26 @@ public class PitLaunchShortcut implements ILaunchShortcut2 {
         wc.setAttribute(ATTR_PROJECT_NAME, element.getJavaProject().getElementName());
         wc.setAttribute(ATTR_TEST_CONTAINER, containerHandleId);
 
-        PitConfiguration preferences = PitCoreActivator.getDefault().getConfiguration();
-        wc.setAttribute(ATTR_TEST_IN_PARALLEL, preferences.isParallelExecution());
-        wc.setAttribute(ATTR_TEST_INCREMENTALLY, preferences.isIncrementalAnalysis());
-        wc.setAttribute(ATTR_EXCLUDE_CLASSES, preferences.getExcludedClasses());
-        wc.setAttribute(ATTR_EXCLUDE_METHODS, preferences.getExcludedMethods());
-        wc.setAttribute(ATTR_AVOID_CALLS_TO, preferences.getAvoidCallsTo());
+        if (containerHandleId.equals(EMPTY_STRING)) {
+            // set target class, launch configuration is for class
+            String targetClass = PitclipseUiUtils.getTargetClass(mainTypeQualifiedName);
+            if (!PitclipseUiUtils.isClassOnClasspath(targetClass)) {
+                // reset target class, if it is not on class path
+                targetClass = EMPTY_STRING;
+            }
+            wc.setAttribute(LaunchConfigurationWrapper.ATTR_TARGET_CLASSES, targetClass);
+        }
+
+        PitConfiguration defaultConfiguration = PitCoreActivator.getDefault().getConfiguration();
+        wc.setAttribute(ATTR_TEST_IN_PARALLEL, defaultConfiguration.isParallelExecution());
+        wc.setAttribute(ATTR_TEST_INCREMENTALLY, defaultConfiguration.isIncrementalAnalysis());
+        wc.setAttribute(ATTR_EXCLUDE_CLASSES, defaultConfiguration.getExcludedClasses());
+        wc.setAttribute(ATTR_EXCLUDE_METHODS, defaultConfiguration.getExcludedMethods());
+        wc.setAttribute(ATTR_AVOID_CALLS_TO, defaultConfiguration.getAvoidCallsTo());
         mapResources(wc);
         return wc;
     }
+
 
     /**
      * Returns the attribute names of the attributes that are compared when

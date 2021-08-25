@@ -56,6 +56,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(TIMEOUT, DEFAULT_TIMEOUT);
         store.setDefault(TIMEOUT_FACTOR, DEFAULT_TIMEOUT_FACTOR.toString());
         store.setDefault(EXCLUDED_CLASSES, PitConfiguration.DEFAULT_EXCLUDED_CLASSES);
+        store.setDefault(PitPreferences.CLASS_PATTERN_ENABLED, false);
     }
 
 }

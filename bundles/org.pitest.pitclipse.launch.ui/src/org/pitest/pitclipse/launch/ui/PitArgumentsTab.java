@@ -32,9 +32,11 @@ import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR
 import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_INCREMENTALLY;
 import static org.pitest.pitclipse.launch.config.LaunchConfigurationWrapper.ATTR_TEST_IN_PARALLEL;
 
-import java.util.regex.Pattern;
-
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -58,6 +60,7 @@ import org.eclipse.swt.widgets.Text;
 import org.pitest.pitclipse.core.PitCoreActivator;
 import org.pitest.pitclipse.runner.config.PitConfiguration;
 import org.pitest.pitclipse.ui.core.PitUiActivator;
+import org.pitest.pitclipse.ui.utils.PitclipseUiUtils;
 
 /**
  * Tab allowing to configure a PIT analyze.
@@ -108,22 +111,22 @@ public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
      */
     private Text targetClassText;
     /**
-     * Helper pattern for {@link #CLASS_PATTERN}
-     */
-    private static final String ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
-    /**
-     * Pattern which matches a valid java class
-     */
-    private static final String CLASS_PATTERN = ID_PATTERN + "(\\." + ID_PATTERN + ")*";
-    /**
-     * Pattern which matches multiple {@link #CLASS_PATTERN} separated by commas
-     */
-    private static final Pattern MULTI_CLASS_PATTERN = Pattern.compile(CLASS_PATTERN + "(,\\s?" + CLASS_PATTERN + ")*");
-    /**
      * Target class error message. Which is displayed, if the text field has no
-     * valid input
+     * valid name
      */
-    private static final String TARGET_CLASS_ERROR_MESSAGE = "The target class field can only contain classes seperated by commas, with their packages divided by dots and shouldn't end with .java.\n" + "Example: foo.bar.Foo";
+    private static final String INVALID_TARGET_CLASS_ERROR_MESSAGE = "The target class field can only contain classes seperated by commas,"
+            + "with their packages divided by dots and shouldn't end with .java. Example: foo.bar.Foo\n"
+            + "The invalid target class was: ";
+    /**
+     * Target class error message. Which is displayed, if the text field includes a
+     * class which is not on the class path
+     */
+    private static final String TARGET_CLASS_NOT_ON_CLASSPATH = "One of the target classes was not found on the class path. The classes shouldn't end with .java\n"
+            + "Not found class was: ";
+    /**
+     * Target class error message, if one target class is an empty string
+     */
+    private static final String EMPTY_TARGET_CLASS_ERROR_MESSAGE = "One given target class was empty.";
     /**
      * Radio button, if selected the tests are run in parallel
      */
@@ -309,10 +312,14 @@ public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 targetClassText.setEnabled(targetClassCheckBoxButton.getSelection());
+                if (targetClassCheckBoxButton.getSelection() && targetClassText.getText().equals("")) {
+                    // get target class from test class, if enabled
+                    targetClassText.setText(PitclipseUiUtils.getTargetClass(testClassText.getText()));
+                }
                 updateLaunchConfigurationDialog();
             }
         });
-    
+
         Label targetClassLabel = new Label(comp, SWT.NONE);
         targetClassLabel.setText(TARGET_CLASS_TEXT);
         GridData labelGrid = new GridData(FILL_HORIZONTAL);
@@ -491,10 +498,39 @@ public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
         }
     }
 
+    private boolean isNameValid(String name) {
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IStatus status = workspace.validateName(name, IResource.FILE);
+        return status.isOK();
+    }
+
+    private boolean areTargetClassesValid() {
+        if (!targetClassCheckBoxButton.getSelection()) {
+            // if the option of target classes is disabled, don't check
+            return true;
+        }
+        for (String targetClass : targetClassText.getText().split(",")) {
+            targetClass = targetClass.trim();
+            if (targetClass.equals("")) {
+                setErrorMessage(EMPTY_TARGET_CLASS_ERROR_MESSAGE);
+                return false;
+            }
+            if (!isNameValid(targetClass)) {
+                setErrorMessage(INVALID_TARGET_CLASS_ERROR_MESSAGE + targetClass);
+                return false;
+            }
+            if (!PitclipseUiUtils.isClassOnClasspath(targetClass)) {
+                setErrorMessage(TARGET_CLASS_NOT_ON_CLASSPATH + targetClass);
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public boolean canSave() {
-        return !targetClassCheckBoxButton.getSelection()
-                || MULTI_CLASS_PATTERN.matcher(targetClassText.getText()).matches();
+        setErrorMessage(null);
+        return areTargetClassesValid();
     }
 
     @Override
@@ -507,7 +543,7 @@ public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
         if (canSave()) {
             setErrorMessage(null);
         } else {
-            setErrorMessage(TARGET_CLASS_ERROR_MESSAGE);
+            setErrorMessage(INVALID_TARGET_CLASS_ERROR_MESSAGE);
         }
         super.updateLaunchConfigurationDialog();
     }

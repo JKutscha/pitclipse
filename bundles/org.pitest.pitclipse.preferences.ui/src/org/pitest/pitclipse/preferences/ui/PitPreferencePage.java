@@ -16,17 +16,44 @@
 
 package org.pitest.pitclipse.preferences.ui;
 
+import static org.pitest.pitclipse.core.preferences.PitPreferences.AVOID_CALLS_TO;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.AVOID_CALLS_TO_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_DESCRIPTION;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_METHODS;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_METHODS_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXECUTION_MODE;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXECUTION_MODE_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_ANALYSIS;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_ANALYSIS_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.PREFERENCE_DESCRIPTION_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_LABEL;
+import static org.pitest.pitclipse.runner.config.PitExecutionMode.values;
+
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.RadioGroupFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.pitest.pitclipse.core.PitCoreActivator;
 import org.pitest.pitclipse.runner.config.PitExecutionMode;
-
-import static org.pitest.pitclipse.core.preferences.PitPreferences.*;
-import static org.pitest.pitclipse.runner.config.PitExecutionMode.values;
 
 /**
  * This class represents a preference page that is contributed to the
@@ -40,6 +67,26 @@ import static org.pitest.pitclipse.runner.config.PitExecutionMode.values;
  */
 
 public class PitPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
+    /**
+     * Helper pattern for {@link #CLASS_PATTERN}
+     */
+    private static final String HELPER_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
+    private static final String TEST_STRING = "(?:Test)";
+    /**
+     * Pattern which matches a test class name like ClassTest
+     */
+    private static final String CLASS_TEST_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + "(" + HELPER_PATTERN + ")"
+            + TEST_STRING;
+    /**
+     * Pattern which matches a test class name like TestClass
+     */
+    private static final String TEST_CLASS_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + TEST_STRING + "("
+            + HELPER_PATTERN + ")";
+
+    /**
+     * Pattern which is used as a default
+     */
+    public static final String DEFAULT_CLASS_PATTERN = TEST_CLASS_PATTERN;
 
     public PitPreferencePage() {
         super(GRID);
@@ -62,6 +109,7 @@ public class PitPreferencePage extends FieldEditorPreferencePage implements IWor
         createAvoidCallsToField();
         createPitTimeoutField();
         createPitTimeoutFactorField();
+        createClassPatternGroup();
     }
 
     private void createAvoidCallsToField() {
@@ -90,6 +138,22 @@ public class PitPreferencePage extends FieldEditorPreferencePage implements IWor
 
     private void createPitTimeoutFactorField() {
         addField(new StringFieldEditor(TIMEOUT_FACTOR, TIMEOUT_FACTOR_LABEL, getFieldEditorParent()));
+    }
+
+    private void createClassPatternGroup() {
+        final Group patternGroup = new Group(getFieldEditorParent(), SWT.NONE);
+        patternGroup.setText(CLASS_PATTERN_LABEL);
+        GridDataFactory.fillDefaults().span(2, 1).applyTo(patternGroup);
+        GridLayoutFactory.createFrom((GridLayout) getFieldEditorParent().getLayout()).applyTo(patternGroup);
+        final Label descriptionLabel = new Label(patternGroup, SWT.NONE);
+        descriptionLabel.setText(CLASS_PATTERN_DESCRIPTION);
+        GridDataFactory.fillDefaults().span(2, 1).applyTo(descriptionLabel);
+
+        addField(new BooleanFieldEditor(CLASS_PATTERN_ENABLED, CLASS_PATTERN_ENABLED_LABEL, patternGroup));
+        final String[][] pattern = {
+                { "Pattern for com.package.TestClass.java to com.package.Class.java", TEST_CLASS_PATTERN },
+                { "Pattern for com.package.ClassTest.java to com.package.Class.java", CLASS_TEST_PATTERN } };
+        addField(new RadioGroupFieldEditor(CLASS_PATTERN, CLASS_PATTERN_LABEL, 1, pattern, patternGroup));
     }
 
     private void createExecutionModeRadioButtons() {
