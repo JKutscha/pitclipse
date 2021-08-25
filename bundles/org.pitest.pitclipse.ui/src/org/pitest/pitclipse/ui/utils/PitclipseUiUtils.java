@@ -15,10 +15,24 @@
  ******************************************************************************/
 package org.pitest.pitclipse.ui.utils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
+import org.pitest.pitclipse.core.PitCoreActivator;
+import org.pitest.pitclipse.core.preferences.PitPreferences;
 
 /**
  * A few utilities for the UI.
@@ -79,5 +93,48 @@ public class PitclipseUiUtils {
             messageBox.setMessage(errorMessage);
             messageBox.open();
         }
+    }
+
+    /**
+     * Tries to create the target class for the given test class, with the pattern
+     * specified from the preferences.
+     * @param testClass name of the test class
+     * @return the test class or an empty string, if no test class was found or the
+     *         pattern option is deactivated.
+     */
+    public static String getTargetClass(String testClass) {
+        String targetClass = "";
+        // try to get target class from test class, if enabled
+        final IPreferenceStore preferenceStore = PitCoreActivator.getDefault().getPreferenceStore();
+        if (preferenceStore.getBoolean(PitPreferences.CLASS_PATTERN_ENABLED)) {
+            final Pattern classPattern = Pattern.compile(preferenceStore.getString(PitPreferences.CLASS_PATTERN));
+            final Matcher matcher = classPattern.matcher(testClass);
+            if (matcher.find() && matcher.groupCount() == 2) {
+                targetClass = matcher.group(1) + '.' + matcher.group(2);
+            }
+        }
+        return targetClass;
+    }
+
+    /**
+     * @param className which should be tested
+     * @return true, if the given class name is a file and has a valid name in the
+     *         workspace, otherwise false
+     */
+    public static boolean isClassOnClasspath(String className) {
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IStatus status = workspace.validateName(className, IResource.FILE);
+        if (status.isOK()) {
+            final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+            for (IProject project : projects) {
+                IJavaProject javaProject = JavaCore.create(project);
+                try {
+                    return javaProject.findType(className) != null;
+                } catch (JavaModelException e) {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }

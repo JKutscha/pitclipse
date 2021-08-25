@@ -46,12 +46,18 @@ public final class PitPreferences {
     public static final String TIMEOUT_FACTOR_LABEL = "Timeout &Factor";
     public static final String TIMEOUT_FACTOR = "pitTimeoutFactor";
 
-
     public static final String EXECUTION_MODE_LABEL = "Pit execution scope";
     public static final String EXECUTION_MODE = "pitExecutionMode";
 
     public static final String PREFERENCE_DESCRIPTION_LABEL = "Pitclipse Preferences";
     public static final String MUTATORS_DESCRIPTION_LABEL = "Mutator Preferences";
+
+    public static final String CLASS_PATTERN_DESCRIPTION = "With the Class Pattern the programm tries to extract the target class from the name of the test class, if the mutation test object is a test class.\n"
+            + "Should the test class name not match a class in the class path, the default behaviour is used.";
+    public static final String CLASS_PATTERN_ENABLED_LABEL = "Enable Class Pattern";
+    public static final String CLASS_PATTERN_ENABLED = "pitClassPatternEnabled";
+    public static final String CLASS_PATTERN_LABEL = "Class &Pattern";
+    public static final String CLASS_PATTERN = "pitClassPattern";
 
     private PitPreferences() {
         // utility class should not be instantiated
