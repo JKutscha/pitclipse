@@ -141,7 +141,7 @@ public class ObjectStreamSocket implements Closeable {
 
     }
 
-    private static final class ReadException extends RuntimeException {
+    public static final class ReadException extends RuntimeException {
         private static final long serialVersionUID = -7217167622171380199L;
 
         public ReadException(Exception e) {

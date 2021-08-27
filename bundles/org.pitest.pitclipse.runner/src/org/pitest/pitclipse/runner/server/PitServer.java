@@ -16,21 +16,24 @@
 
 package org.pitest.pitclipse.runner.server;
 
+import java.io.Closeable;
+import java.io.IOException;
+
+import org.pitest.pitclipse.runner.PitErrorResult;
 import org.pitest.pitclipse.runner.PitRequest;
 import org.pitest.pitclipse.runner.PitResults;
 import org.pitest.pitclipse.runner.client.PitClient;
 import org.pitest.pitclipse.runner.io.ObjectStreamSocket;
+import org.pitest.pitclipse.runner.io.ObjectStreamSocket.ReadException;
 import org.pitest.pitclipse.runner.io.SocketProvider;
-
-import java.io.Closeable;
-import java.io.IOException;
+import org.pitest.pitclipse.runner.util.PitErrorUtil;
 
 /**
  * <p>A server used to communicate with a running PIT application.</p>
  *
  * <p>More specifically, it allows to:
  * <ul>
- *  <li>{@link #sendRequest(PitRequest) send} a {@link PitRequest request} 
+ *  <li>{@link #sendRequest(PitRequest) send} a {@link PitRequest request}
  *  to the {@link PitClient PIT client} to parameterize and launch the analyze
  *  <li>{@link #receiveResults() receive} the results of PIT's analysis
  * </ul>
@@ -99,6 +102,13 @@ public class PitServer implements Closeable {
      * @return the results of PIT analysis
      */
     public PitResults receiveResults() {
-        return socket.read();
+        try {
+            return socket.read();
+        } catch (ReadException e) {
+            PitErrorUtil
+                    .showErrorMessage("Pit finished with an error. The console view shows a more detailed message.\n"
+                    + "Reason for fail was probably:\n");
+            return PitErrorResult.getPitErrorResultWithErrorMessage(e);
+        }
     }
 }
