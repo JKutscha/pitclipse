@@ -129,9 +129,11 @@ public class PitclipseUiUtils {
             for (IProject project : projects) {
                 IJavaProject javaProject = JavaCore.create(project);
                 try {
-                    return javaProject.findType(className) != null;
-                } catch (JavaModelException e) {
-                    return false;
+                    if (javaProject.findType(className) != null) {
+                        return true;
+                    }
+                } catch (JavaModelException ignoreMe) {
+                    // ignored
                 }
             }
         }
