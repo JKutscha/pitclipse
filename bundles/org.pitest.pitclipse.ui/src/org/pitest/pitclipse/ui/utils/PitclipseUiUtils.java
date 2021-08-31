@@ -97,16 +97,29 @@ public class PitclipseUiUtils {
 
     /**
      * Tries to create the target class for the given test class, with the pattern
-     * specified from the preferences.
+     * specified from the preferences, if this option is enabled.
      * @param testClass name of the test class
      * @return the test class or an empty string, if no test class was found or the
      *         pattern option is deactivated.
      */
     public static String getTargetClass(String testClass) {
+        return getTargetClass(testClass, false);
+    }
+
+    /**
+     * Tries to create the target class for the given test class, with the pattern
+     * specified from the preferences, if this option is enabled or the preferences
+     * are ignored.
+     * @param testClass        name of the test class
+     * @param ignorePreference if the preference setting should be ignored or not
+     * @return the test class or an empty string, if no test class was found or the
+     *         pattern option is deactivated and not ignored.
+     */
+    public static String getTargetClass(String testClass, boolean ignorePreference) {
         String targetClass = "";
-        // try to get target class from test class, if enabled
+        // try to get target class from test class
         final IPreferenceStore preferenceStore = PitCoreActivator.getDefault().getPreferenceStore();
-        if (preferenceStore.getBoolean(PitPreferences.CLASS_PATTERN_ENABLED)) {
+        if (ignorePreference || preferenceStore.getBoolean(PitPreferences.CLASS_PATTERN_ENABLED)) {
             final Pattern classPattern = Pattern.compile(preferenceStore.getString(PitPreferences.CLASS_PATTERN));
             final Matcher matcher = classPattern.matcher(testClass);
             if (matcher.find() && matcher.groupCount() == 2) {

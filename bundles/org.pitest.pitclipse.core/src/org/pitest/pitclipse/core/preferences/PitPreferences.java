@@ -59,6 +59,24 @@ public final class PitPreferences {
     public static final String CLASS_PATTERN_LABEL = "Class &Pattern";
     public static final String CLASS_PATTERN = "pitClassPattern";
 
+    /**
+     * Helper pattern for {@link #CLASS_PATTERN}
+     */
+    private static final String HELPER_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
+    private static final String TEST_STRING = "(?:Test)";
+    /**
+     * Pattern which matches a test class name like ClassTest
+     */
+    public static final String CLASS_TEST_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + "(" + HELPER_PATTERN + ")" + TEST_STRING;
+    /**
+     * Pattern which matches a test class name like TestClass
+     */
+    public static final String TEST_CLASS_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + TEST_STRING + "(" + HELPER_PATTERN + ")";
+    /**
+     * Pattern which is used as a default
+     */
+    public static final String DEFAULT_CLASS_PATTERN = TEST_CLASS_PATTERN;
+
     private PitPreferences() {
         // utility class should not be instantiated
     }

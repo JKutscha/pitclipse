@@ -43,6 +43,7 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -66,18 +67,33 @@ import org.pitest.pitclipse.ui.utils.PitclipseUiUtils;
  * Tab allowing to configure a PIT analyze.
  */
 public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
-    public static final String NAME = "PIT";
     private static final int NUMBER_OF_COLUMNS = 3;
+    /**
+     * Name of the tab
+     */
+    public static final String NAME = "PIT";
     public static final String TEST_CLASS_RADIO_TEXT = "Run mutations from a unit test";
     public static final String TEST_CLASS_TEXT = "Test Class:";
     public static final String TEST_DIR_RADIO_TEXT = "Run mutations against a package or directory";
     public static final String TEST_DIR_TEXT = "Directory:";
     public static final String TARGET_CLASS_CHECK_BOX_TEXT = "Run mutations against specific target classes";
     public static final String TARGET_CLASS_TEXT = "Target Class(es):";
+    /**
+     * Target class button text
+     */
+    public static final String TARGET_CLASS_BUTTON_TEXT = "Compute target class";
+    /**
+     * Text of the filter group
+     */
     public static final String FILTERS_GROUP_TEXT = " Filters ";
+    /**
+     * Text of the scope group
+     */
     public static final String SCOPE_GROUP_TEXT = " Mutation Scope ";
+    /**
+     * Project text
+     */
     public static final String PROJECT_TEXT = "Project to mutate: ";
-
     /**
      * Text which holds the information about which project to mutate.
      */
@@ -312,22 +328,30 @@ public final class PitArgumentsTab extends AbstractLaunchConfigurationTab {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 targetClassText.setEnabled(targetClassCheckBoxButton.getSelection());
-                if (targetClassCheckBoxButton.getSelection() && targetClassText.getText().equals("")) {
-                    // get target class from test class, if enabled
-                    targetClassText.setText(PitclipseUiUtils.getTargetClass(testClassText.getText()));
-                }
                 updateLaunchConfigurationDialog();
             }
         });
 
         Label targetClassLabel = new Label(comp, SWT.NONE);
         targetClassLabel.setText(TARGET_CLASS_TEXT);
-        GridData labelGrid = new GridData(FILL_HORIZONTAL);
-        labelGrid.horizontalIndent = 25;
-        labelGrid.horizontalSpan = NUMBER_OF_COLUMNS;
-        targetClassLabel.setLayoutData(labelGrid);
         targetClassLabel.setFont(font);
-    
+        GridDataFactory.swtDefaults().indent(25, 0).applyTo(targetClassLabel);
+
+        Button targetClassButton = new Button(comp, SWT.PUSH);
+        targetClassButton.setText(TARGET_CLASS_BUTTON_TEXT);
+        targetClassButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                // enable target class text to be written to
+                targetClassCheckBoxButton.setSelection(true);
+                targetClassText.setEnabled(true);
+                // try to compute the target class from the test class
+                targetClassText.setText(PitclipseUiUtils.getTargetClass(testClassText.getText(), true));
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().align(SWT.END, SWT.CENTER).applyTo(targetClassButton);
+
         GridData textGrid = new GridData(FILL_HORIZONTAL);
         textGrid.horizontalSpan = NUMBER_OF_COLUMNS;
         textGrid.horizontalIndent = 25;

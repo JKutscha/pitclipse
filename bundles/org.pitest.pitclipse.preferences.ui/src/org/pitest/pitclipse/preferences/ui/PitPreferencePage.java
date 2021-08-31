@@ -23,6 +23,7 @@ import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_TEST_PATTERN;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_METHODS;
@@ -34,6 +35,7 @@ import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_A
 import static org.pitest.pitclipse.core.preferences.PitPreferences.PREFERENCE_DESCRIPTION_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TEST_CLASS_PATTERN;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR_LABEL;
@@ -67,27 +69,6 @@ import org.pitest.pitclipse.runner.config.PitExecutionMode;
  */
 
 public class PitPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-    /**
-     * Helper pattern for {@link #CLASS_PATTERN}
-     */
-    private static final String HELPER_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
-    private static final String TEST_STRING = "(?:Test)";
-    /**
-     * Pattern which matches a test class name like ClassTest
-     */
-    private static final String CLASS_TEST_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + "(" + HELPER_PATTERN + ")"
-            + TEST_STRING;
-    /**
-     * Pattern which matches a test class name like TestClass
-     */
-    private static final String TEST_CLASS_PATTERN = "([" + HELPER_PATTERN + ".?]*)\\." + TEST_STRING + "("
-            + HELPER_PATTERN + ")";
-
-    /**
-     * Pattern which is used as a default
-     */
-    public static final String DEFAULT_CLASS_PATTERN = TEST_CLASS_PATTERN;
-
     public PitPreferencePage() {
         super(GRID);
         setPreferenceStore(PitCoreActivator.getDefault().getPreferenceStore());
@@ -151,8 +132,8 @@ public class PitPreferencePage extends FieldEditorPreferencePage implements IWor
 
         addField(new BooleanFieldEditor(CLASS_PATTERN_ENABLED, CLASS_PATTERN_ENABLED_LABEL, patternGroup));
         final String[][] pattern = {
-                { "Pattern for com.package.TestClass.java to com.package.Class.java", TEST_CLASS_PATTERN },
-                { "Pattern for com.package.ClassTest.java to com.package.Class.java", CLASS_TEST_PATTERN } };
+                { "Pattern for com.package.TestClass.java to com.package.Class.java",TEST_CLASS_PATTERN },
+                { "Pattern for com.package.ClassTest.java to com.package.Class.java",CLASS_TEST_PATTERN } };
         addField(new RadioGroupFieldEditor(CLASS_PATTERN, CLASS_PATTERN_LABEL, 1, pattern, patternGroup));
     }
 
@@ -173,6 +154,6 @@ public class PitPreferencePage extends FieldEditorPreferencePage implements IWor
      */
     @Override
     public void init(IWorkbench workbench) {
-        // Not implemented - not special initialising needed
+        // Not implemented - not special initializing needed
     }
 }
