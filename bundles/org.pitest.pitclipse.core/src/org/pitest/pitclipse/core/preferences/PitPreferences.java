@@ -59,6 +59,8 @@ public final class PitPreferences {
     public static final String CLASS_PATTERN_LABEL = "Class &Pattern";
     public static final String CLASS_PATTERN = "pitClassPattern";
 
+    public static final String TEST_CLASS_LABEL = "Pattern for com.package.TestClass.java to com.package.Class.java";
+    public static final String CLASS_TEST_LABEL = "Pattern for com.package.ClassTest.java to com.package.Class.java";
     /**
      * Helper pattern for {@link #CLASS_PATTERN}
      */

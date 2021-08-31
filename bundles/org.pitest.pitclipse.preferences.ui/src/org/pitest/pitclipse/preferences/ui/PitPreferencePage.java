@@ -23,6 +23,7 @@ import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_TEST_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_TEST_PATTERN;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES_LABEL;
@@ -35,6 +36,7 @@ import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_A
 import static org.pitest.pitclipse.core.preferences.PitPreferences.PREFERENCE_DESCRIPTION_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TEST_CLASS_LABEL;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TEST_CLASS_PATTERN;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT;
 import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR;
@@ -69,9 +71,6 @@ import org.pitest.pitclipse.runner.config.PitExecutionMode;
  */
 
 public class PitPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-    public static final String TEST_CLASS_LABEL = "Pattern for com.package.TestClass.java to com.package.Class.java";
-    public static final String CLASS_TEST_LABEL = "Pattern for com.package.ClassTest.java to com.package.Class.java";
-
     public PitPreferencePage() {
         super(GRID);
         setPreferenceStore(PitCoreActivator.getDefault().getPreferenceStore());

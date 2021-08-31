@@ -5,6 +5,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED;
 import static org.pitest.pitclipse.runner.config.PitConfiguration.DEFAULT_AVOID_CALLS_TO_LIST;
 import static org.pitest.pitclipse.runner.config.PitConfiguration.DEFAULT_MUTATORS;
 import static org.pitest.pitclipse.runner.config.PitExecutionMode.PROJECT_ISOLATION;
@@ -161,8 +163,8 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
             runTest(FOO_TEST_CLASS, FOO_BAR_PACKAGE, TEST_PROJECT);
             coverageReportGenerated(2, 40, 0, 6, 0);
             runtimeOptionsMatch(
-            "classUnderTest  | timeoutConst | timeoutFactor | runInParallel | incrementalAnalysis | excludedClasses           | avoidCallsTo          | excludedMethods \n" +
-            "foo.bar.FooTest | 2000         | 2             | false         | true                | org.foo.*IntTest, *DbTest | org.slf4j, org.apache | *toString*, doNotMutateMe*"
+            "classUnderTest  | timeoutConst | timeoutFactor | runInParallel | incrementalAnalysis | excludedClasses           | avoidCallsTo          | excludedMethods             | classesToMutate\n" +
+            "foo.bar.FooTest | 2000         | 2             | false         | true                | org.foo.*IntTest, *DbTest | org.slf4j, org.apache | *toString*, doNotMutateMe*  | foo.bar.Foo, foo.bar.FooTest,  foo.bar.BarTest, foo.bar.Bar"
             );
             launchConfigurationsMatch(
             "name    | runInParallel | useIncrementalAnalysis | excludedClasses          | excludedMethods            | avoidCallsTo \n"
@@ -178,6 +180,26 @@ public class PitclipseOptionsTest extends AbstractPitclipseSWTBotTest {
             preferenceStore.setValue(PitPreferences.EXCLUDED_CLASSES, PitConfiguration.DEFAULT_EXCLUDED_CLASSES);
             preferenceStore.setValue(PitPreferences.AVOID_CALLS_TO, PitConfiguration.DEFAULT_AVOID_CALLS_TO_LIST);
             preferenceStore.setValue(PitPreferences.EXCLUDED_METHODS, "");
+        }
+    }
+
+    @Test
+    public void runTestWithClassPatternEnabled() throws CoreException {
+        try {
+            PitPreferenceSelector selector = PAGES.getWindowsMenu().openPreferences().andThen();
+            selector.setUseTargetClassPattern(true);
+            selector.selectTargetClassPattern(PitPreferences.CLASS_TEST_LABEL);
+            selector.close();
+
+            runTest(FOO_TEST_CLASS, FOO_BAR_PACKAGE, TEST_PROJECT);
+            coverageReportGenerated(1, 80, 0, 3, 0);
+            runtimeOptionsMatch("classUnderTest  | classesToMutate\n" +
+                    "foo.bar.FooTest | foo.bar.Foo");
+        } finally {
+            // reset changed values
+            IPreferenceStore preferenceStore = PitCoreActivator.getDefault().getPreferenceStore();
+            preferenceStore.setValue(CLASS_PATTERN_ENABLED, preferenceStore.getDefaultBoolean(CLASS_PATTERN_ENABLED));
+            preferenceStore.setValue(CLASS_PATTERN, preferenceStore.getDefaultString(CLASS_PATTERN));
         }
     }
 

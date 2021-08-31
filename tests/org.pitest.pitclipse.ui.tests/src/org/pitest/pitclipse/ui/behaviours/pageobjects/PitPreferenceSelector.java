@@ -16,7 +16,20 @@
 
 package org.pitest.pitclipse.ui.behaviours.pageobjects;
 
-import com.google.common.base.Optional;
+import static java.math.BigDecimal.ZERO;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.AVOID_CALLS_TO_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.CLASS_PATTERN_ENABLED_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_METHODS_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.EXECUTION_MODE_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_ANALYSIS_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR_LABEL;
+import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_LABEL;
+import static org.pitest.pitclipse.ui.behaviours.pageobjects.SwtBotTreeHelper.selectAndExpand;
+
+import java.io.Closeable;
+import java.math.BigDecimal;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
@@ -24,19 +37,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.pitest.pitclipse.core.Mutators;
 import org.pitest.pitclipse.runner.config.PitExecutionMode;
 
-import java.io.Closeable;
-import java.math.BigDecimal;
-
-import static java.math.BigDecimal.ZERO;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.AVOID_CALLS_TO_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_CLASSES_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.EXCLUDED_METHODS_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.EXECUTION_MODE_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.RUN_IN_PARALLEL_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.TIMEOUT_FACTOR_LABEL;
-import static org.pitest.pitclipse.core.preferences.PitPreferences.INCREMENTAL_ANALYSIS_LABEL;
-import static org.pitest.pitclipse.ui.behaviours.pageobjects.SwtBotTreeHelper.selectAndExpand;
+import com.google.common.base.Optional;
 
 public class PitPreferenceSelector implements Closeable {
 
@@ -146,6 +147,14 @@ public class PitPreferenceSelector implements Closeable {
         setTextFor(TIMEOUT_FACTOR_LABEL).to(factor);
     }
 
+    public void setUseTargetClassPattern(boolean active) {
+        setSelectionFor(CLASS_PATTERN_ENABLED_LABEL).to(active);
+    }
+
+    public void selectTargetClassPattern(String option) {
+        setSelectionFor(option).selectRadio();
+    }
+
     private static interface PreferenceGetter<T> {
         T getPreference(String label);
     }
@@ -196,6 +205,15 @@ public class PitPreferenceSelector implements Closeable {
 
         public void to(final int value) {
             to(Integer.toString(value));
+        }
+
+        public void selectRadio() {
+            updatePreference(new PreferenceSetter<String>() {
+                @Override
+                public void setPreference() {
+                    bot.radio(label).click();
+                }
+            });
         }
 
         private <T> void updatePreference(PreferenceSetter<T> s) {
