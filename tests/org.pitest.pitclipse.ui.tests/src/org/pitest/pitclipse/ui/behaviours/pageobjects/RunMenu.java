@@ -59,7 +59,9 @@ public class RunMenu {
     }
 
     public void runPitWithConfiguration(String configurationName) {
-        runConfigurationSelector.runWithConfigurationAndWaitForIt(configurationName);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.runWithConfigurationAndWaitForIt(configurationName);
+        }
     }
 
     /**
@@ -86,27 +88,37 @@ public class RunMenu {
     public List<PitRunConfiguration> runConfigurations() {
         SWTBotMenuHelper menuHelper = new SWTBotMenuHelper();
         menuHelper.findMenu(menuHelper.findWorkbenchMenu(bot, RUN), RUN_CONFIGURATIONS).click();
-        return runConfigurationSelector.getConfigurations();
+        return openRunMenu().andThen().getConfigurations();
     }
 
     public void createRunConfiguration(String configurationName, String projectName, String className) {
-        runConfigurationSelector.createRunConfiguration(configurationName, projectName, className);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.createRunConfiguration(configurationName, projectName, className);
+        }
     }
 
     public void setProjectForConfiguration(String configurationName, String project) {
-        runConfigurationSelector.setProjectForConfiguration(configurationName, project);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setProjectForConfiguration(configurationName, project);
+        }
     }
 
     public void setTestClassForConfiguration(String configurationName, String testClass) {
-        runConfigurationSelector.setTestClassForConfiguration(configurationName, testClass);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setTestClassForConfiguration(configurationName, testClass);
+        }
     }
 
     public void setTestDirForConfiguration(String configurationName, String testDir) {
-        runConfigurationSelector.setTestDirForConfiguration(configurationName, testDir);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setTestDirForConfiguration(configurationName, testDir);
+        }
     }
 
     public void setTargetClassForConfiguration(String configurationName, String targetClass) {
-        runConfigurationSelector.setTargetClassForConfiguration(configurationName, targetClass);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setTargetClassForConfiguration(configurationName, targetClass);
+        }
     }
 
     public PitOptions getLastUsedPitOptions() {
@@ -119,7 +131,9 @@ public class RunMenu {
      * @param mutatorGroup      which group to select
      */
     public void setMutatorGroup(String configurationName, Mutators mutatorGroup) {
-        runConfigurationSelector.setMutatorGroup(configurationName, mutatorGroup);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setMutatorGroup(configurationName, mutatorGroup);
+        }
     }
 
     /**
@@ -127,7 +141,9 @@ public class RunMenu {
      * @param configurationName of the configuration, where to select all mutators
      */
     public void checkAllMutators(String configurationName) {
-        runConfigurationSelector.checkAllMutators(configurationName);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.checkAllMutators(configurationName);
+        }
     }
 
     /**
@@ -136,7 +152,10 @@ public class RunMenu {
      * @param mutator           which should be toggled
      */
     public void toggleCustomMutator(String configurationName, Mutators mutator) {
-        runConfigurationSelector.toggleCustomMutator(configurationName, mutator);
+
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.toggleCustomMutator(configurationName, mutator);
+        }
     }
 
     /**
@@ -146,7 +165,9 @@ public class RunMenu {
      * @param mutator           which to select in the configuration
      */
     public void setOneCustomMutator(String configurationName, Mutators mutator) {
-        runConfigurationSelector.setOneCustomMutator(configurationName, mutator);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.setOneCustomMutator(configurationName, mutator);
+        }
     }
 
     /**
@@ -154,7 +175,22 @@ public class RunMenu {
      * @param configurationName which should be removed
      */
     public void removeConfig(String configurationName) {
-        runConfigurationSelector.removeConfig(configurationName);
+        try (RunConfigurationSelector selector = openRunMenu().andThen()) {
+            selector.removeConfig(configurationName);
+        }
     }
 
+    /**
+     * Opens the run menu and activates it
+     */
+    public RunConficurationDsl openRunMenu() {
+        runConfigurationSelector.openRunConfigurationShell();
+        return new RunConficurationDsl();
+    }
+
+    public class RunConficurationDsl {
+        public RunConfigurationSelector andThen() {
+            return runConfigurationSelector;
+        }
+    }
 }
