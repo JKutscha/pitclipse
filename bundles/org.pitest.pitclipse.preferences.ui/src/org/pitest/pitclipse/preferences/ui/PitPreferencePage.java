@@ -69,6 +69,9 @@ import org.pitest.pitclipse.runner.config.PitExecutionMode;
  */
 
 public class PitPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
+    public static final String TEST_CLASS_LABEL = "Pattern for com.package.TestClass.java to com.package.Class.java";
+    public static final String CLASS_TEST_LABEL = "Pattern for com.package.ClassTest.java to com.package.Class.java";
+
     public PitPreferencePage() {
         super(GRID);
         setPreferenceStore(PitCoreActivator.getDefault().getPreferenceStore());
@@ -132,8 +135,8 @@ public class PitPreferencePage extends FieldEditorPreferencePage implements IWor
 
         addField(new BooleanFieldEditor(CLASS_PATTERN_ENABLED, CLASS_PATTERN_ENABLED_LABEL, patternGroup));
         final String[][] pattern = {
-                { "Pattern for com.package.TestClass.java to com.package.Class.java",TEST_CLASS_PATTERN },
-                { "Pattern for com.package.ClassTest.java to com.package.Class.java",CLASS_TEST_PATTERN } };
+                { TEST_CLASS_LABEL, TEST_CLASS_PATTERN },
+                { CLASS_TEST_LABEL, CLASS_TEST_PATTERN } };
         addField(new RadioGroupFieldEditor(CLASS_PATTERN, CLASS_PATTERN_LABEL, 1, pattern, patternGroup));
     }
 
